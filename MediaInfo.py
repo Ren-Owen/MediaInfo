@@ -20,7 +20,7 @@ class MediaInfo :
             for cmdpath in os.environ['PATH'].split(':') :
                 if os.path.isdir(cmdpath) and 'ffprobe' in os.listdir(cmdpath) :
                     self.cmd = cmdpath + '/ffprobe'
-                elif os.path.isdir(cmdpath) and 'ffprobe' in os.listdir(cmdpath) :
+                elif os.path.isdir(cmdpath) and 'mediainfo' in os.listdir(cmdpath) :
                     self.cmd = cmdpath + '/mediainfo'
 
             if self.cmd == None :
