@@ -132,6 +132,7 @@ class MediaInfo :
 
         video     = re.search("(Video[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
         if video :
+            mediaInfo['haveVideo'] = 1
             videoInfo = video.group(0)
 
             videoCodec        = re.search("Codec\s*:\s*([\w\_\-\\\/\. ]+)\n",           videoInfo, re.S)
@@ -165,6 +166,7 @@ class MediaInfo :
 
         audio     = re.search("(Audio[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
         if audio :
+            mediaInfo['haveAudio'] = 1
             audioInfo = audio.group(0)
 
             tmpAudioCodec     = re.search("Codec\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
