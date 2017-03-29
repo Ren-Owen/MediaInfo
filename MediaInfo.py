@@ -154,9 +154,9 @@ class MediaInfo :
             if videoBitrate :
                 mediaInfo['videoBitrate'] = videoBitrate.group(1)
             if videoWidth :
-                mediaInfo['videoWidth'] = videoWidth.group(1)
+                mediaInfo['videoWidth'] = (int)(videoWidth.group(1))
             if videoHeight :
-                mediaInfo['videoHeight'] = videoHeight.group(1)
+                mediaInfo['videoHeight'] = (int)(videoHeight.group(1))
             if videoAspectRatio :
                 mediaInfo['videoAspectRatio'] = videoAspectRatio.group(1)
             if videoFrameRate :
