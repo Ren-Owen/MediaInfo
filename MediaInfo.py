@@ -127,7 +127,7 @@ class MediaInfo :
 
             mediaInfo['container'] = container.group(1)
             mediaInfo['fileSize']  = fileSize.group(1)
-            mediaInfo['duration']  = duration.group(1)
+            mediaInfo['duration']  = (str)((float)(duration.group(1))/1000)
             mediaInfo['bitrate']   = bitrate.group(1)
 
         video     = re.search("(Video[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
@@ -150,7 +150,7 @@ class MediaInfo :
             if videoCodecProfile :
                 mediaInfo['videoCodecProfile'] = videoCodecProfile.group(1)
             if videoDuration :
-                mediaInfo['videoDuration'] = videoDuration.group(1)
+                mediaInfo['videoDuration'] = (str)((float)(videoDuration.group(1))/1000)
             if videoBitrate :
                 mediaInfo['videoBitrate'] = videoBitrate.group(1)
             if videoWidth :
@@ -186,7 +186,7 @@ class MediaInfo :
             if audioCodecProfile :
                 mediaInfo['audioCodecProfile'] = audioCodecProfile.group(1)
             if audioDuration :
-                mediaInfo['audioDuration'] = audioDuration.group(1)
+                mediaInfo['audioDuration'] = (str)((float)(audioDuration.group(1))/1000)
             if audioBitrate :
                 mediaInfo['audioBitrate'] = audioBitrate.group(1)
             if audioChannel :
