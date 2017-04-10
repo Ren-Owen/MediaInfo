@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='MediaInfo',
-    version='0.0.6',
+    version='0.0.7',
 
     description='A Python wrapper around the ffprobe or mediainfo command line utility',
     long_description=open('README.rst').read(),

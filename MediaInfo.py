@@ -102,15 +102,27 @@ class MediaInfo :
         return mediaInfo
 
     def _mediainfoGetInfo(self) :
-        cmd         = self.cmd + ' -f ' + self.filename
+        prevPath    = os.getcwd()
+        newPath     = os.path.abspath(os.path.dirname(self.filename))
+        file        = os.path.basename(self.filename)
+
+        cmd         = self.cmd + ' -f ' + file
         outputBytes = ''
 
         try :
-            outputBytes = subprocess.check_output(cmd, shell = True)
-        except subprocess.CalledProcessError as e :
-            return ''
+            os.chdir(newPath)
+            try :
+                outputBytes = subprocess.check_output(cmd, shell = True)
+            except subprocess.CalledProcessError as e :
+                return ''
 
-        outputText = outputBytes.decode('utf-8')
+            outputText = outputBytes.decode('utf-8')
+        except IOError :
+            os.chdir(prevPath)
+            return ''
+        finally:
+            os.chdir(prevPath)
+
         self.info  = self._mediainfoGetInfoRegex(outputText)
 
     def _mediainfoGetInfoRegex(self, sourceString) :
@@ -195,4 +207,3 @@ class MediaInfo :
                 mediaInfo['audioSamplingRate'] = audioSamplingRate.group(0)
 
         return mediaInfo
-
