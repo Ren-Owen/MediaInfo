@@ -142,7 +142,7 @@ class MediaInfo :
             mediaInfo['duration']  = (str)((float)(duration.group(1))/1000)
             mediaInfo['bitrate']   = bitrate.group(1)
 
-        video     = re.search("(Video[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
+        video     = re.search("(\nVideo[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
         if video :
             mediaInfo['haveVideo'] = 1
             videoInfo = video.group(0)
@@ -176,7 +176,7 @@ class MediaInfo :
             if videoFrameCount :
                 mediaInfo['videoFrameCount'] = videoFrameCount.group(1)
 
-        audio     = re.search("(Audio[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
+        audio     = re.search("(\nAudio[\s\#\d]*\n.*?\n\n)", sourceString, re.S)
         if audio :
             mediaInfo['haveAudio'] = 1
             audioInfo = audio.group(0)
