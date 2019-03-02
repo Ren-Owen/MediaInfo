@@ -147,7 +147,7 @@ class MediaInfo :
             mediaInfo['haveVideo'] = 1
             videoInfo = video.group(0)
 
-            videoCodec        = re.search("Codec\s*:\s*([\w\_\-\\\/\. ]+)\n",           videoInfo, re.S)
+            videoCodec        = re.search("Codec(?:\sID)?\s*:\s*([\w\_\-\\\/\. ]+)\n",  videoInfo, re.S)
             videoCodecProfile = re.search("Codec profile\s*:\s*([\w\_\-\\\/\@\. ]+)\n", videoInfo, re.S)
             videoDuration     = re.search("Duration\s*:\s*(\d+)\.?\d*\n",               videoInfo, re.S)
             videoBitrate      = re.search("Bit rate\s*:\s*(\d+)\n",                     videoInfo, re.S)
@@ -181,7 +181,7 @@ class MediaInfo :
             mediaInfo['haveAudio'] = 1
             audioInfo = audio.group(0)
 
-            tmpAudioCodec     = re.search("Codec\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
+            tmpAudioCodec     = re.search("Codec(?:\sID)?\s*:\s*([\w\_\-\\\/ ]+)\n",    audioInfo, re.S)
             audioCodec        = re.search("\w+", tmpAudioCodec.group(1), re.S)
             audioCodecProfile = re.search("Codec profile\s*:\s*([\w\_\-\\\/\@\. ]+)\n", audioInfo, re.S)
             if audioCodecProfile is None :
