@@ -41,12 +41,14 @@ class MediaInfo :
 
 
     def _ffmpegGetInfo(self) :
-        cmd         = self.cmd + ' -loglevel quiet -print_format json -show_format -show_streams -show_error -count_frames -i ' + self.filename
+        cmd         = [self.cmd, "-loglevel", "quiet", "-print_format", "json",
+                       "-show_format", "-show_streams", "-show_error",
+                       "-count_frames", "-i", self.filename]
         outputBytes = ''
 
         try :
-            outputBytes = subprocess.check_output(cmd, shell = True)
-        except subprocess.CalledProcessError as e :
+            outputBytes = subprocess.check_output(cmd, shell=False)
+        except subprocess.CalledProcessError as e:
             return ''
 
         outputText = outputBytes.decode('utf-8')
@@ -102,26 +104,14 @@ class MediaInfo :
         return mediaInfo
 
     def _mediainfoGetInfo(self) :
-        prevPath    = os.getcwd()
-        newPath     = os.path.abspath(os.path.dirname(self.filename))
-        file        = os.path.basename(self.filename)
-
-        cmd         = self.cmd + ' -f ' + file
-        outputBytes = ''
+        file_ = os.path.abspath(self.filename)
+        cmd = [self.cmd, "-f", file_]
 
         try :
-            os.chdir(newPath)
-            try :
-                outputBytes = subprocess.check_output(cmd, shell = True)
-            except subprocess.CalledProcessError as e :
-                return ''
-
+            outputBytes = subprocess.check_output(cmd, shell=False)
             outputText = outputBytes.decode('utf-8')
-        except IOError :
-            os.chdir(prevPath)
+        except Exception:
             return ''
-        finally:
-            os.chdir(prevPath)
 
         self.info  = self._mediainfoGetInfoRegex(outputText)
 
