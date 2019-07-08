@@ -12,6 +12,7 @@ class MediaInfo :
         self.filename = kwargs.get('filename')
         self.cmd      = kwargs.get('cmd')
         self.info     = dict()
+        self.infoDict = dict()
 
         if self.filename == None :
             self.filename = ''
@@ -60,6 +61,7 @@ class MediaInfo :
 
         try :
             infoDict = json.loads(sourceString)
+            self.infoDict = infoDict
         except json.JSONDecodeError as err :
             return mediaInfo
 
