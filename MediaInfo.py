@@ -173,7 +173,14 @@ class MediaInfo :
             mediaInfo['haveAudio'] = 1
             audioInfo = audio.group(0)
 
-            tmpAudioCodec     = re.search("Codec\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
+            tmpAudioCodec     = re.search("Codec ID/Hint\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
+
+            if not tmpAudioCodec:
+                tmpAudioCodec     = re.search("Codec ID\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
+
+            if not tmpAudioCodec:
+                tmpAudioCodec     = re.search("Codec\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
+
             audioCodec        = re.search("\w+", tmpAudioCodec.group(1), re.S)
             audioCodecProfile = re.search("Codec profile\s*:\s*([\w\_\-\\\/\@\. ]+)\n", audioInfo, re.S)
             if audioCodecProfile is None :
