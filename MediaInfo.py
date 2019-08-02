@@ -44,7 +44,8 @@ class MediaInfo :
     def _ffmpegGetInfo(self) :
         cmd         = [self.cmd, "-loglevel", "quiet", "-print_format", "json",
                        "-show_format", "-show_streams", "-show_error",
-                       "-count_frames", "-i", self.filename]
+                       #"-count_frames",
+                       "-i", self.filename]
         outputBytes = ''
 
         try :
