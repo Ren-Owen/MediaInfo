@@ -45,7 +45,7 @@ class MediaInfo :
         outputBytes = ''
 
         try :
-            outputBytes = subprocess.check_output(cmd, shell = True)
+            outputBytes = subprocess.check_output(cmd, shell = False)
         except subprocess.CalledProcessError as e :
             return ''
 
@@ -112,7 +112,7 @@ class MediaInfo :
         try :
             os.chdir(newPath)
             try :
-                outputBytes = subprocess.check_output(cmd, shell = True)
+                outputBytes = subprocess.check_output(cmd, shell = False)
             except subprocess.CalledProcessError as e :
                 return ''
 
