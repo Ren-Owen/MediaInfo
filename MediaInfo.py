@@ -65,7 +65,10 @@ class MediaInfo:
                         mediaInfo['videoWidth']        = stream.width
                         mediaInfo['videoHeight']       = stream.height
                         mediaInfo['videoAspectRatio']  = aspect(stream.width, stream.height)
-                        mediaInfo['videoFrameRate']    = "%d/%d"%stream.framerate.as_integer_ratio()
+                        try:
+                            mediaInfo['videoFrameRate']    = "%d/%d"%stream.framerate.as_integer_ratio()
+                        except Exception:
+                            mediaInfo['videoFrameRate']    = None
                         mediaInfo['videoFrameCount']   = str(framecount)
                 elif isinstance(stream, av.audio.stream.AudioStream):
                     if 'haveAudio' not in mediaInfo:
