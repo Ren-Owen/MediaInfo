@@ -8,6 +8,11 @@
 import os, sys, re, json
 import subprocess
 from shutil import which
+try:
+    import av
+    has_av = True
+except ImportError:
+    has_av = False
 
 def _internal_search(obj, name, pattern, string, group, permille=False, integral=False):
     m = re.search(pattern, string, re.S)
@@ -19,8 +24,14 @@ def _internal_search(obj, name, pattern, string, group, permille=False, integral
             res = int(res)
         obj[name] = res
 
+def aspect(w, h):
+    a, b = w, h
+    while b > 1:
+        a, b = b, a%b
+    return "%d:%d"%(w//a, h//a)
+
 class MediaInfo:
-    def __init__(self, filename=None, cmd=None):
+    def __init__(self, filename=None, cmd=None, use_av=True):
         self.filename = '' if filename is None else filename
         self.cmd      = cmd
         self.info     = {}
@@ -30,7 +41,52 @@ class MediaInfo:
                 self.cmd = which("ffprobe")
                 if self.cmd == None:
                     self.cmd = ""
+        if has_av and use_av:
+            container = av.open(filename)
+            duration = str(container.duration*.000001)
+            mediaInfo = {
+                        "container": container.format.name,
+                        "fileSize": str(container.size),
+                        "duration": duration,
+                        "bitrate": str(container.bit_rate)
+            }
+            for stream in container.streams:
+                if isinstance(stream, av.video.stream.VideoStream):
+                    if 'haveVideo' not in mediaInfo:
+                        framecount = 0
+                        for frame in container.demux(stream):
+                            if frame.duration:
+                                framecount += 1
+                        mediaInfo['haveVideo'] = True
+                        mediaInfo['videoCodec']        = stream.codec_context.name
+                        mediaInfo['videoCodecProfile'] = stream.profile
+                        mediaInfo['videoDuration']     = duration
+                        mediaInfo['videoBitrate']      = stream.bit_rate
+                        mediaInfo['videoWidth']        = stream.width
+                        mediaInfo['videoHeight']       = stream.height
+                        mediaInfo['videoAspectRatio']  = aspect(stream.width, stream.height)
+                        mediaInfo['videoFrameRate']    = "%d/%d"%stream.framerate.as_integer_ratio()
+                        mediaInfo['videoFrameCount']   = str(framecount)
+                elif isinstance(stream, av.audio.stream.AudioStream):
+                    if 'haveAudio' not in mediaInfo:
+                        framecount = 0
+                        for frame in container.demux(stream):
+                            if frame.duration:
+                                framecount += 1
+                        mediaInfo['haveAudio'] = True
+                        mediaInfo['audioCodec']        = stream.codec_context.name
+                        mediaInfo['audioCodecProfile'] = stream.profile
+                        mediaInfo['audioDuration']     = duration
+                        mediaInfo['audioBitrate']      = stream.bit_rate
+                        mediaInfo['audioChannel']      = stream.channels
+                        mediaInfo['audioSamplingRate'] = str(stream.sample_rate)
+                        mediaInfo['audioFrameCount']   = str(framecount)
+                self.info = mediaInfo
     def getInfo(self):
+        try:
+            return self.info
+        except AttributeError:
+            pass
         if not all((os.path.isfile(sc) for sc in (self.filename, self.cmd))):
             return None
         cmdName = os.path.basename(self.cmd)
