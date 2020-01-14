@@ -34,7 +34,6 @@ class MediaInfo:
     def __init__(self, filename=None, cmd=None, use_av=True):
         self.filename = '' if filename is None else filename
         self.cmd      = cmd
-        self.info     = {}
         if self.cmd is None:
             self.cmd = which("mediainfo")
             if self.cmd is None:
@@ -47,9 +46,11 @@ class MediaInfo:
             return self.info
         except AttributeError:
             pass
-        if has_av and self.use_av:
+        if not all((os.path.isfile(sc) for sc in (self.filename, self.cmd))):
+            return
+        elif has_av and self.use_av:
             try:
-                container = av.open(filename)
+                container = av.open(self.filename)
             except Exception:
                 self.info = {}
             else:
@@ -96,8 +97,6 @@ class MediaInfo:
                             mediaInfo['audioFrameCount']   = str(framecount)
                 self.info = mediaInfo
         else:
-            if not all((os.path.isfile(sc) for sc in (self.filename, self.cmd))):
-                return None
             cmdName = os.path.basename(self.cmd)
             if cmdName == 'ffprobe':
                 self._ffmpegGetInfo()
