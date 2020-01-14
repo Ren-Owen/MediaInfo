@@ -41,62 +41,68 @@ class MediaInfo:
                 self.cmd = which("ffprobe")
                 if self.cmd == None:
                     self.cmd = ""
-        if has_av and use_av:
-            container = av.open(filename)
-            duration = str(container.duration*.000001)
-            mediaInfo = {
-                        "container": container.format.name,
-                        "fileSize": str(container.size),
-                        "duration": duration,
-                        "bitrate": str(container.bit_rate)
-            }
-            for stream in container.streams:
-                if isinstance(stream, av.video.stream.VideoStream):
-                    if 'haveVideo' not in mediaInfo:
-                        framecount = 0
-                        for frame in container.demux(stream):
-                            if frame.duration:
-                                framecount += 1
-                        mediaInfo['haveVideo'] = True
-                        mediaInfo['videoCodec']        = stream.codec_context.name
-                        mediaInfo['videoCodecProfile'] = stream.profile
-                        mediaInfo['videoDuration']     = duration
-                        mediaInfo['videoBitrate']      = stream.bit_rate
-                        mediaInfo['videoWidth']        = stream.width
-                        mediaInfo['videoHeight']       = stream.height
-                        mediaInfo['videoAspectRatio']  = aspect(stream.width, stream.height)
-                        try:
-                            mediaInfo['videoFrameRate']    = "%d/%d"%stream.framerate.as_integer_ratio()
-                        except Exception:
-                            mediaInfo['videoFrameRate']    = None
-                        mediaInfo['videoFrameCount']   = str(framecount)
-                elif isinstance(stream, av.audio.stream.AudioStream):
-                    if 'haveAudio' not in mediaInfo:
-                        framecount = 0
-                        for frame in container.demux(stream):
-                            if frame.duration:
-                                framecount += 1
-                        mediaInfo['haveAudio'] = True
-                        mediaInfo['audioCodec']        = stream.codec_context.name
-                        mediaInfo['audioCodecProfile'] = stream.profile
-                        mediaInfo['audioDuration']     = duration
-                        mediaInfo['audioBitrate']      = stream.bit_rate
-                        mediaInfo['audioChannel']      = stream.channels
-                        mediaInfo['audioSamplingRate'] = str(stream.sample_rate)
-                        mediaInfo['audioFrameCount']   = str(framecount)
-                self.info = mediaInfo
+        self.use_av = use_av
     def getInfo(self):
         try:
             return self.info
         except AttributeError:
             pass
-        if not all((os.path.isfile(sc) for sc in (self.filename, self.cmd))):
-            return None
-        cmdName = os.path.basename(self.cmd)
-        if cmdName == 'ffprobe':
-            self._ffmpegGetInfo()
-        elif cmdName == 'mediainfo':
-            self._mediainfoGetInfo()
+        if has_av and self.use_av:
+            try:
+                container = av.open(filename)
+            except Exception:
+                self.info = {}
+            else:
+                duration = str(container.duration*.000001)
+                mediaInfo = {
+                            "container": container.format.name,
+                            "fileSize": str(container.size),
+                            "duration": duration,
+                            "bitrate": str(container.bit_rate)
+                }
+                for stream in container.streams:
+                    if isinstance(stream, av.video.stream.VideoStream):
+                        if 'haveVideo' not in mediaInfo:
+                            framecount = 0
+                            for frame in container.demux(stream):
+                                if frame.duration:
+                                    framecount += 1
+                            mediaInfo['haveVideo'] = True
+                            mediaInfo['videoCodec']        = stream.codec_context.name
+                            mediaInfo['videoCodecProfile'] = stream.profile
+                            mediaInfo['videoDuration']     = duration
+                            mediaInfo['videoBitrate']      = stream.bit_rate
+                            mediaInfo['videoWidth']        = stream.width
+                            mediaInfo['videoHeight']       = stream.height
+                            mediaInfo['videoAspectRatio']  = aspect(stream.width, stream.height)
+                            try:
+                                mediaInfo['videoFrameRate']    = "%d/%d"%stream.framerate.as_integer_ratio()
+                            except Exception:
+                                mediaInfo['videoFrameRate']    = None
+                            mediaInfo['videoFrameCount']   = str(framecount)
+                    elif isinstance(stream, av.audio.stream.AudioStream):
+                        if 'haveAudio' not in mediaInfo:
+                            framecount = 0
+                            for frame in container.demux(stream):
+                                if frame.duration:
+                                    framecount += 1
+                            mediaInfo['haveAudio'] = True
+                            mediaInfo['audioCodec']        = stream.codec_context.name
+                            mediaInfo['audioCodecProfile'] = stream.profile
+                            mediaInfo['audioDuration']     = duration
+                            mediaInfo['audioBitrate']      = stream.bit_rate
+                            mediaInfo['audioChannel']      = stream.channels
+                            mediaInfo['audioSamplingRate'] = str(stream.sample_rate)
+                            mediaInfo['audioFrameCount']   = str(framecount)
+                self.info = mediaInfo
+        else:
+            if not all((os.path.isfile(sc) for sc in (self.filename, self.cmd))):
+                return None
+            cmdName = os.path.basename(self.cmd)
+            if cmdName == 'ffprobe':
+                self._ffmpegGetInfo()
+            elif cmdName == 'mediainfo':
+                self._mediainfoGetInfo()
         return self.info
 
     def _ffmpegGetInfo(self):
