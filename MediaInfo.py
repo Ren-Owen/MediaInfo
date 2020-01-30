@@ -102,7 +102,11 @@ class MediaInfo:
                 self._ffmpegGetInfo()
             elif cmdName == 'mediainfo':
                 self._mediainfoGetInfo()
-        return self.info
+            try:
+                return self.info
+            except AttributeError:
+                self.info = {}
+            return self.info
 
     def _ffmpegGetInfo(self):
         try:
@@ -110,7 +114,7 @@ class MediaInfo:
         except Exception:
             return ''
         outputText = outputBytes.decode('utf-8')
-        self.info  = self._ffmpegGetInfoJson(outputText)
+        self.info = self._ffmpegGetInfoJson(outputText)
 
     def _ffmpegGetInfoJson(self, sourceString):
         try:
@@ -144,7 +148,7 @@ class MediaInfo:
                 mediaInfo['videoAspectRatio']  = infoDict['streams'][videoStreamIndex].get('display_aspect_ratio')
                 mediaInfo['videoFrameRate']    = infoDict['streams'][videoStreamIndex].get('r_frame_rate')
                 mediaInfo['videoFrameCount']   = infoDict['streams'][videoStreamIndex].get('nb_read_frames')
-            if audioStreamIndex is not None: 
+            if audioStreamIndex is not None:
                 mediaInfo['audioCodec']        = infoDict['streams'][audioStreamIndex].get('codec_name')
                 mediaInfo['audioCodecProfile'] = infoDict['streams'][audioStreamIndex].get('profile')
                 mediaInfo['audioDuration']     = infoDict['streams'][audioStreamIndex].get('duration')
