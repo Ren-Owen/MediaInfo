@@ -105,10 +105,14 @@ class MediaInfo :
         prevPath    = os.getcwd()
         newPath     = os.path.abspath(os.path.dirname(self.filename))
         file        = os.path.basename(self.filename)
-
-        cmd         = self.cmd + ' -f ' + file
+        
+        version = self._getMediaInfoVersion()        
+        if version < 20:
+            cmd         = self.cmd + ' -f ' + file
+        else:
+            cmd         = self.cmd + ' --Output=JSON -f ' + file
         outputBytes = ''
-
+        
         try :
             os.chdir(newPath)
             try :
@@ -122,12 +126,80 @@ class MediaInfo :
             return ''
         finally:
             os.chdir(prevPath)
+        
+        if version < 20:
+            self.info  = self._mediainfoGetInfoRegex(outputText)
+        else:
+            self.info  = self._mediainfoGetInfoJson(outputText)
 
-        self.info  = self._mediainfoGetInfoRegex(outputText)
+    
+    def _getMediaInfoVersion(self):
+        version = 0
+        cmd = self.cmd + ' --Version'
+
+        try:
+            outputBytes = subprocess.check_output(cmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            return ''
+
+        outputText = outputBytes.decode('utf-8')
+        versionInfo  = re.search("MediaInfoLib\s*-\s*v(\d+)\.(\d+)", outputText, re.S)
+        try:
+            version = versionInfo.group(1)
+        except Exception as e:
+            print('get mediainfo version error!')
+        
+        return (int)(version)
+
+    def _mediainfoGetInfoJson(self, sourceString):
+        mediaInfo = dict()
+        try :
+            infoDict = json.loads(sourceString)
+        except json.JSONDecodeError as err :
+            return mediaInfo
+
+        try:
+            trackInfo = infoDict.get('media').get('track')
+            for item in trackInfo:
+                if item.get('@type') == 'General':
+                    mediaInfo['container'] = item.get('Format')
+                    mediaInfo['fileSize']  = item.get('FileSize')
+                    mediaInfo['duration'] = item.get('Duration')
+                    mediaInfo['bitrate']   = item.get('OverallBitRate')
+                elif item.get('@type') == 'Video':
+                    videoInfo = item
+                    mediaInfo['haveVideo'] = 1
+                elif item.get('@type') == 'Audio':
+                    audioInfo = item
+                    mediaInfo['haveAudio'] = 1
+
+        except Exception as e:
+            print(e)
+            return mediaInfo
+
+        if 'haveVideo' in mediaInfo and mediaInfo['haveVideo'] == 1:
+            mediaInfo['videoCodec'] = videoInfo.get('Format')
+            mediaInfo['videoCodecProfile'] = videoInfo.get('Format_Profile')
+            mediaInfo['videoDuration'] = videoInfo.get('Duration')
+            mediaInfo['videoBitrate'] = videoInfo.get('BitRate')
+            mediaInfo['videoWidth'] = (int)(videoInfo.get('Width'))
+            mediaInfo['videoHeight'] = (int)(videoInfo.get('Height'))
+            mediaInfo['videoAspectRatio'] = videoInfo.get('DisplayAspectRatio')
+            mediaInfo['videoFrameRate'] = videoInfo.get('FrameRate')
+            mediaInfo['videoFrameCount'] = videoInfo.get('FrameCount')
+
+        if  'haveAudio' in mediaInfo  and mediaInfo['haveAudio'] == 1:
+            mediaInfo['audioCodec'] = audioInfo.get('Format')
+            mediaInfo['audioCodecProfile'] = audioInfo.get('Format_AdditionalFeatures')
+            mediaInfo['audioDuration'] = audioInfo.get('Duration')
+            mediaInfo['audioBitrate'] = audioInfo.get('BitRate')
+            mediaInfo['audioChannel'] = audioInfo.get('Channels')
+            mediaInfo['audioSamplingRate'] = audioInfo.get('SamplingRate')
+
+        return mediaInfo
 
     def _mediainfoGetInfoRegex(self, sourceString) :
         mediaInfo   = dict()
-        
         general     = re.search("(^General\n.*?\n\n)", sourceString, re.S)
         if general :
             generalInfo = general.group(0)
@@ -180,7 +252,6 @@ class MediaInfo :
         if audio :
             mediaInfo['haveAudio'] = 1
             audioInfo = audio.group(0)
-
             tmpAudioCodec     = re.search("Codec\s*:\s*([\w\_\-\\\/ ]+)\n",             audioInfo, re.S)
             audioCodec        = re.search("\w+", tmpAudioCodec.group(1), re.S)
             audioCodecProfile = re.search("Codec profile\s*:\s*([\w\_\-\\\/\@\. ]+)\n", audioInfo, re.S)
